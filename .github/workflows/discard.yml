@@ -1,0 +1,87 @@
+# This workflow is used to discard runners by creating a pull request.
+# It can be triggered manually via the GitHub Actions UI.
+
+name: discard
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  workflow_dispatch:
+    inputs:
+      # Control how to choice the backend to discard.
+      backend:
+        description: 'Backend, which accelerated backend to discard'
+        required: true
+        type: choice
+        options:
+          - cann
+          - corex
+          - cuda
+          - dtk
+          - hggc
+          - maca
+          - musa
+          - rocm
+      backend_version:
+        description: 'Backend version, which version of the backend to discard'
+        required: false
+        type: string
+      backend_variant:
+        description: 'Backend variant, which variant of the backend to discard'
+        required: false
+        type: string
+      # Control how to choice the service to discard.
+      service:
+        description: 'Service, which service to discard'
+        required: false
+        type: string
+      service_version:
+        description: 'Service version, which version of the service to discard'
+        required: false
+        type: string
+
+jobs:
+  # Submit a PR to discard the runner.
+  discard-runner:
+    runs-on: ubuntu-22.04
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 1
+            persist-credentials: false
+        - name: Discard Runner
+          env:
+            INPUT_BACKEND: ${{ github.event.inputs.backend }}
+            INPUT_BACKEND_VERSION: ${{ github.event.inputs.backend_version }}
+            INPUT_BACKEND_VARIANT: ${{ github.event.inputs.backend_variant }}
+            INPUT_SERVICE: ${{ github.event.inputs.service }}
+            INPUT_SERVICE_VERSION: ${{ github.event.inputs.service_version }}
+            INPUT_WORKSPACE: ${{ github.workspace }}/pack
+            INPUT_TEMPDIR: ${{ runner.temp }}
+          run: ${{ github.workspace }}/pack/discard_runner.sh
+        - name: Generate Pull Request Token
+          id: generate-prt
+          uses: actions/create-github-app-token@v2
+          with:
+            app-id: ${{ secrets.CI_PRT_GENERATOR_ID }}
+            private-key: ${{ secrets.CI_PRT_GENERATOR_KEY }}
+        - name: Pull Request
+          uses: peter-evans/create-pull-request@v7
+          with:
+            token: ${{ steps.generate-prt.outputs.token }}
+            branch: "create-pull-request/discard-runner-${{ github.run_id }}"
+            delete-branch: true
+            commit-message: "chore: discard runner by gha workflow ${{ github.run_id }}"
+            title: "chore: discard runner by gha workflow ${{ github.run_id }}"
+            reviewers: ${{ github.actor }}
+            assignees: ${{ github.actor }}
+            body: |
+              Discard runner by GHA workflow [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
