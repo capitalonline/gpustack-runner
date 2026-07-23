@@ -99,6 +99,29 @@ rules:
   # NVIDIA CUDA
   #
 
+  ## NVIDIA CUDA 13.0.1 - VLLM 0.25.1
+  ##
+  - backend: "cuda"
+    services:
+      - "vllm"
+    platforms:
+      - "linux/amd64"
+    args:
+      - "CUDA_VERSION=13.0.1"
+      - "VLLM_VERSION=0.25.1"
+      - "VLLM_BASE_IMAGE=docker.m.daocloud.io/vllm/vllm-openai:v0.25.1"
+  ## NVIDIA CUDA 13.0.1 - SGLang 0.5.15.post1
+  ##
+  - backend: "cuda"
+    services:
+      - "sglang"
+    platforms:
+      - "linux/amd64"
+    args:
+      - "CUDA_VERSION=13.0.1"
+      - "SGLANG_VERSION=0.5.15.post1"
+      - "SGLANG_BASE_IMAGE=registry-cds.yun-paas.com/ai-infra/preset-images/sglang:v0.5.15.post1"
+
   ## NVIDIA CUDA 13.0.1
   ##
   - backend: "cuda"
