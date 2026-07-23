@@ -922,5 +922,5 @@
     "platform": "linux/amd64",
     "docker_image": "gpustack/runner:rocm7.2-vllm0.20.2",
     "deprecated": false
-  },
+  }
 ]
